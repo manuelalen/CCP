@@ -1,4 +1,4 @@
-- =========================================================
+-- =========================================================
 -- 1) DATABASE
 -- =========================================================
 CREATE DATABASE IF NOT EXISTS DEV_CCP
@@ -197,3 +197,73 @@ JOIN uom u          ON u.uom_id = bl.uom_id
 WHERE bh.is_active = 1
   AND bh.effective_from <= CURDATE()
   AND (bh.effective_to IS NULL OR bh.effective_to >= CURDATE());
+
+-- ===========================================================
+-- Nuevo step: Crear la tabla de tiempos de trabajo.
+-- ===========================================================
+CREATE TABLE IF NOT EXISTS tiempo_trabajo (
+  id                BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  sku               VARCHAR(64) NOT NULL,
+  rama              VARCHAR(128) NOT NULL,              -- ej: COCCION, ENVASADO, COSTURA...
+  horas_por_unidad  DECIMAL(18,6) NOT NULL,             -- horas para producir 1 unidad de ese SKU en esa rama
+  is_activo         BOOLEAN NOT NULL DEFAULT TRUE,
+  vigente_desde     DATE NOT NULL DEFAULT (CURRENT_DATE),
+  vigente_hasta     DATE NULL,
+  notes             VARCHAR(500) NULL,
+  INDEX idx_tt_sku (sku),
+  INDEX idx_tt_active (is_activo),
+  CONSTRAINT fk_tt_product_sku
+    FOREIGN KEY (sku) REFERENCES product(sku)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS io_coef (
+  id            BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  output_sku    VARCHAR(64) NOT NULL,    -- columna j (lo que produces)
+  input_sku     VARCHAR(64) NOT NULL,    -- fila i (lo que consumes)
+  qty_per_unit  DECIMAL(18,6) NOT NULL,  -- unidades de input_sku por 1 unidad de output_sku
+  is_active     BOOLEAN NOT NULL DEFAULT TRUE,
+  notes         VARCHAR(500) NULL,
+  UNIQUE KEY uq_io (output_sku, input_sku),
+  INDEX idx_io_active (is_active),
+  CONSTRAINT fk_io_out FOREIGN KEY (output_sku) REFERENCES product(sku),
+  CONSTRAINT fk_io_in  FOREIGN KEY (input_sku)  REFERENCES product(sku)
+) ENGINE=InnoDB;
+
+
+CREATE TABLE IF NOT EXISTS pipeline_config (
+  pipeline_id              BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  pipeline_name            VARCHAR(64) NOT NULL,          -- ej: 'pl_leontief'
+  horas_por_trabajador     DECIMAL(10,2) NOT NULL DEFAULT 160.00,
+  strict_missing_labor     BOOLEAN NOT NULL DEFAULT TRUE,
+  run_every_minutes        INT UNSIGNED NOT NULL DEFAULT 60,
+  is_active                BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at               DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at               DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+-- Items de demanda (una fila por SKU)
+CREATE TABLE IF NOT EXISTS pipeline_demand_item (
+  item_id       BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  pipeline_id   BIGINT UNSIGNED NOT NULL,
+  sku           VARCHAR(64) NOT NULL,
+  cantidad      DECIMAL(18,6) NOT NULL,
+  is_active     BOOLEAN NOT NULL DEFAULT TRUE,
+  CONSTRAINT fk_pdi_pipeline FOREIGN KEY (pipeline_id) REFERENCES pipeline_config(pipeline_id),
+  CONSTRAINT fk_pdi_product  FOREIGN KEY (sku) REFERENCES product(sku),
+  UNIQUE KEY uq_pipeline_sku (pipeline_id, sku)
+) ENGINE=InnoDB;
+
+-- Último resultado (histórico)
+CREATE TABLE IF NOT EXISTS pipeline_run (
+  run_id                    BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  pipeline_id               BIGINT UNSIGNED NOT NULL,
+  run_ts                    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  horas_por_trabajador      DECIMAL(10,2) NOT NULL,
+  strict_missing_labor      BOOLEAN NOT NULL,
+  demand_json               JSON NOT NULL,
+  result_json               JSON NOT NULL,    -- dataframe a json (records)
+  total_hours               DECIMAL(18,6) NOT NULL,
+  total_workers_equivalent  DECIMAL(18,6) NOT NULL,
+  CONSTRAINT fk_pr_pipeline FOREIGN KEY (pipeline_id) REFERENCES pipeline_config(pipeline_id),
+  INDEX idx_pr_pipeline_ts (pipeline_id, run_ts)
+) ENGINE=InnoDB;

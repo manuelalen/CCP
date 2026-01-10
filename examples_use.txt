@@ -1,0 +1,11 @@
+python pl_leontief.py --demand MEAL_RICE_CHICKEN_CURRY_400G=12000 TSHIRT_BASIC_M=5000 --hours 160
+
+crontab -e
+
+Levantar web --> uv pip install fastapi uvicorn python-dotenv
+                 uvicorn web.app:app --reload --port 8000
+
+
+SELECT * FROM pipeline_config; --> Aquí tenemos la config a modificar
+
+al igual que las demandas --> SELECT * FROM pipeline_demand_item

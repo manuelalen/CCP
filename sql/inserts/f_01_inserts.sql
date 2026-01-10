@@ -1,3 +1,5 @@
+USE CCP;
+
 -- =========================================================
 -- 8) DATOS DEL EJEMPLO: CAMISETA BÁSICA + MATERIALES + BOM
 -- =========================================================
@@ -310,3 +312,47 @@ WHERE p.sku='MEAL_RICE_CHICKEN_CURRY_400G'
     SELECT 1 FROM bom_line bl
     WHERE bl.bom_id = bh.bom_id AND bl.material_id = m.material_id
   );
+
+
+INSERT INTO tiempo_trabajo (sku, rama, horas_por_unidad, notes)
+VALUES
+('MEAL_RICE_CHICKEN_CURRY_400G', 'COCCION', 0.020000, '1.2 min por ración'),
+('MEAL_RICE_CHICKEN_CURRY_400G', 'ENVASADO', 0.010000, '0.6 min por ración'),
+('MEAL_RICE_CHICKEN_CURRY_400G', 'LIMPIEZA_PRORR', 0.005000, '0.3 min prorrateados');
+
+
+-- output: plato final consume input: arroz cocido y salsa
+INSERT INTO product (sku, name, default_uom_id) 
+SELECT 'INT_RICE_COOKED', 'Intermedio: arroz cocido', uom_id FROM uom WHERE code='EA'
+ON DUPLICATE KEY UPDATE name=VALUES(name);
+
+INSERT INTO product (sku, name, default_uom_id) 
+SELECT 'INT_CURRY_SAUCE', 'Intermedio: salsa curry', uom_id FROM uom WHERE code='EA'
+ON DUPLICATE KEY UPDATE name=VALUES(name);
+
+INSERT INTO io_coef (output_sku, input_sku, qty_per_unit, notes)
+VALUES
+('MEAL_RICE_CHICKEN_CURRY_400G', 'INT_RICE_COOKED', 1.0, '1 porción arroz cocido por ración final'),
+('MEAL_RICE_CHICKEN_CURRY_400G', 'INT_CURRY_SAUCE', 1.0, '1 porción salsa por ración final');
+
+
+INSERT INTO tiempo_trabajo (sku, rama, horas_por_unidad, notes)
+VALUES
+('TSHIRT_BASIC_M', 'CORTE',   0.003000, '0.18 min'),
+('TSHIRT_BASIC_M', 'COSTURA', 0.020000, '1.20 min'),
+('TSHIRT_BASIC_M', 'ACABADO', 0.004000, '0.24 min');
+
+INSERT INTO tiempo_trabajo (sku, rama, horas_por_unidad)
+VALUES
+('INT_RICE_COOKED', 'COCCION_ARROZ', 0.005000),
+('INT_CURRY_SAUCE', 'COCCION_SALSA', 0.008000);
+
+
+INSERT INTO pipeline_config (pipeline_name, horas_por_trabajador, strict_missing_labor, run_every_minutes, is_active)
+VALUES ('pl_leontief', 160, TRUE, 60, TRUE);
+
+INSERT INTO pipeline_demand_item (pipeline_id, sku, cantidad)
+VALUES
+(1, 'MEAL_RICE_CHICKEN_CURRY_400G', 200000),
+(1, 'TSHIRT_BASIC_M', 100000)
+ON DUPLICATE KEY UPDATE cantidad = VALUES(cantidad), is_active=1;
