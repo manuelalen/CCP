@@ -171,3 +171,142 @@ SET
     mc.units_produced = mc.units_produced + 100
 WHERE
     m.machine_code = 'MC-SEW-01';
+
+-- 1) Producto
+INSERT INTO product (sku, name, default_uom_id, notes)
+SELECT 'MEAL_RICE_CHICKEN_CURRY_400G',
+       'Comida preparada: arroz con pollo al curry (bandeja ~400g)',
+       u.uom_id,
+       'BOM aproximada por ración'
+FROM uom u
+WHERE u.code = 'EA'
+ON DUPLICATE KEY UPDATE name = VALUES(name), notes = VALUES(notes);
+
+-- 2) Materiales (ingredientes + packaging + energía + limpieza)
+-- Ingredientes (DIRECT)
+INSERT INTO material (material_code, name, category, default_uom_id, notes)
+SELECT 'MAT-RICE-BASMATI', 'Arroz basmati (seco)', 'DIRECT', u.uom_id, NULL
+FROM uom u WHERE u.code='KG'
+ON DUPLICATE KEY UPDATE name=VALUES(name), category=VALUES(category), default_uom_id=VALUES(default_uom_id);
+
+INSERT INTO material (material_code, name, category, default_uom_id)
+SELECT 'MAT-CHICKEN', 'Pollo troceado', 'DIRECT', u.uom_id
+FROM uom u WHERE u.code='KG'
+ON DUPLICATE KEY UPDATE name=VALUES(name);
+
+INSERT INTO material (material_code, name, category, default_uom_id)
+SELECT 'MAT-COCONUT-MILK', 'Leche de coco', 'DIRECT', u.uom_id
+FROM uom u WHERE u.code='L'
+ON DUPLICATE KEY UPDATE name=VALUES(name);
+
+INSERT INTO material (material_code, name, category, default_uom_id)
+SELECT 'MAT-ONION', 'Cebolla', 'DIRECT', u.uom_id
+FROM uom u WHERE u.code='KG'
+ON DUPLICATE KEY UPDATE name=VALUES(name);
+
+INSERT INTO material (material_code, name, category, default_uom_id)
+SELECT 'MAT-GARLIC', 'Ajo', 'DIRECT', u.uom_id
+FROM uom u WHERE u.code='KG'
+ON DUPLICATE KEY UPDATE name=VALUES(name);
+
+INSERT INTO material (material_code, name, category, default_uom_id, notes)
+SELECT 'MAT-CURRY-PASTE', 'Pasta/mezcla de curry', 'DIRECT', u.uom_id, 'Puede ser pasta o mezcla de especias'
+FROM uom u WHERE u.code='KG'
+ON DUPLICATE KEY UPDATE name=VALUES(name), notes=VALUES(notes);
+
+INSERT INTO material (material_code, name, category, default_uom_id)
+SELECT 'MAT-OIL-VEG', 'Aceite vegetal', 'DIRECT', u.uom_id
+FROM uom u WHERE u.code='L'
+ON DUPLICATE KEY UPDATE name=VALUES(name);
+
+INSERT INTO material (material_code, name, category, default_uom_id, notes)
+SELECT 'MAT-WATER-STOCK', 'Caldo/agua', 'DIRECT', u.uom_id, 'Para cocción/salsa'
+FROM uom u WHERE u.code='L'
+ON DUPLICATE KEY UPDATE name=VALUES(name), notes=VALUES(notes);
+
+INSERT INTO material (material_code, name, category, default_uom_id)
+SELECT 'MAT-SALT', 'Sal', 'DIRECT', u.uom_id
+FROM uom u WHERE u.code='KG'
+ON DUPLICATE KEY UPDATE name=VALUES(name);
+
+INSERT INTO material (material_code, name, category, default_uom_id)
+SELECT 'MAT-SUGAR', 'Azúcar', 'DIRECT', u.uom_id
+FROM uom u WHERE u.code='KG'
+ON DUPLICATE KEY UPDATE name=VALUES(name);
+
+INSERT INTO material (material_code, name, category, default_uom_id)
+SELECT 'MAT-CILANTRO', 'Cilantro', 'DIRECT', u.uom_id
+FROM uom u WHERE u.code='KG'
+ON DUPLICATE KEY UPDATE name=VALUES(name);
+
+INSERT INTO material (material_code, name, category, default_uom_id)
+SELECT 'MAT-LIME-JUICE', 'Zumo de lima', 'DIRECT', u.uom_id
+FROM uom u WHERE u.code='L'
+ON DUPLICATE KEY UPDATE name=VALUES(name);
+
+-- Packaging
+INSERT INTO material (material_code, name, category, default_uom_id)
+SELECT 'MAT-TRAY', 'Bandeja (PP/PET)', 'PACKAGING', u.uom_id
+FROM uom u WHERE u.code='EA'
+ON DUPLICATE KEY UPDATE name=VALUES(name);
+
+INSERT INTO material (material_code, name, category, default_uom_id, notes)
+SELECT 'MAT-LIDDING-FILM', 'Film/tapa termosellado', 'PACKAGING', u.uom_id, 'Prorrateado'
+FROM uom u WHERE u.code='KG'
+ON DUPLICATE KEY UPDATE name=VALUES(name), notes=VALUES(notes);
+
+INSERT INTO material (material_code, name, category, default_uom_id)
+SELECT 'MAT-LABEL', 'Etiqueta', 'PACKAGING', u.uom_id
+FROM uom u WHERE u.code='EA'
+ON DUPLICATE KEY UPDATE name=VALUES(name);
+
+-- Energía / Auxiliares
+INSERT INTO material (material_code, name, category, default_uom_id, notes)
+SELECT 'MAT-ELEC-COOKPACK', 'Electricidad (cocción + envasado)', 'ENERGY', u.uom_id, 'kWh por ración (aprox.)'
+FROM uom u WHERE u.code='KWH'
+ON DUPLICATE KEY UPDATE name=VALUES(name), notes=VALUES(notes);
+
+INSERT INTO material (material_code, name, category, default_uom_id, notes)
+SELECT 'MAT-CLEAN-CHEM', 'Detergente/desinfectante (limpieza)', 'AUXILIARY', u.uom_id, 'Prorrateado'
+FROM uom u WHERE u.code='KG'
+ON DUPLICATE KEY UPDATE name=VALUES(name), notes=VALUES(notes);
+
+-- 3) BOM v1
+INSERT INTO bom_header (product_id, version, effective_from, is_active)
+SELECT p.product_id, 'v1', CURRENT_DATE, TRUE
+FROM product p
+WHERE p.sku='MEAL_RICE_CHICKEN_CURRY_400G'
+ON DUPLICATE KEY UPDATE is_active=VALUES(is_active);
+
+-- 4) Líneas BOM (por 1 ración)
+INSERT INTO bom_line (bom_id, material_id, qty_per_unit, uom_id, is_optional, notes)
+SELECT bh.bom_id, m.material_id, x.qty, u.uom_id, x.optional, x.notes
+FROM bom_header bh
+JOIN product p ON p.product_id = bh.product_id
+JOIN (
+  SELECT 'MAT-RICE-BASMATI'    AS material_code, 0.080000 AS qty, 'KG'  AS uom_code, 0 AS optional, NULL AS notes UNION ALL
+  SELECT 'MAT-CHICKEN',           0.120000,      'KG',  0, NULL UNION ALL
+  SELECT 'MAT-COCONUT-MILK',      0.080000,      'L',   0, NULL UNION ALL
+  SELECT 'MAT-ONION',             0.030000,      'KG',  0, NULL UNION ALL
+  SELECT 'MAT-GARLIC',            0.005000,      'KG',  0, NULL UNION ALL
+  SELECT 'MAT-CURRY-PASTE',       0.010000,      'KG',  0, NULL UNION ALL
+  SELECT 'MAT-OIL-VEG',           0.010000,      'L',   0, NULL UNION ALL
+  SELECT 'MAT-WATER-STOCK',       0.150000,      'L',   0, NULL UNION ALL
+  SELECT 'MAT-SALT',              0.002000,      'KG',  0, NULL UNION ALL
+  SELECT 'MAT-SUGAR',             0.002000,      'KG',  1, 'Opcional' UNION ALL
+  SELECT 'MAT-CILANTRO',          0.005000,      'KG',  1, 'Opcional' UNION ALL
+  SELECT 'MAT-LIME-JUICE',        0.010000,      'L',   1, 'Opcional' UNION ALL
+  SELECT 'MAT-TRAY',              1.000000,      'EA',  0, NULL UNION ALL
+  SELECT 'MAT-LIDDING-FILM',      0.003000,      'KG',  0, 'Prorrateado' UNION ALL
+  SELECT 'MAT-LABEL',             1.000000,      'EA',  0, NULL UNION ALL
+  SELECT 'MAT-ELEC-COOKPACK',     0.250000,      'KWH', 0, NULL UNION ALL
+  SELECT 'MAT-CLEAN-CHEM',        0.001000,      'KG',  0, 'Prorrateado'
+) x ON 1=1
+JOIN material m ON m.material_code = x.material_code
+JOIN uom u ON u.code = x.uom_code
+WHERE p.sku='MEAL_RICE_CHICKEN_CURRY_400G'
+  AND bh.version='v1'
+  AND NOT EXISTS (
+    SELECT 1 FROM bom_line bl
+    WHERE bl.bom_id = bh.bom_id AND bl.material_id = m.material_id
+  );

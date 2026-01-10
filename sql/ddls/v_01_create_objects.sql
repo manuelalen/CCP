@@ -25,6 +25,11 @@ INSERT INTO uom (code, name, dimension) VALUES
 ('CYCLE', 'ciclo',     'COUNT')
 ON DUPLICATE KEY UPDATE name = VALUES(name), dimension = VALUES(dimension);
 
+
+INSERT INTO uom (code, name, dimension) VALUES
+('G',  'gramo',  'MASS'),
+('ML', 'mililitro', 'VOLUME')
+ON DUPLICATE KEY UPDATE name = VALUES(name), dimension = VALUES(dimension);
 -- =========================================================
 -- 3) MATERIALES
 -- =========================================================
