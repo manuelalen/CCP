@@ -1,0 +1,4 @@
+M_COMANS_fact_cod,M_COMANS_fact_name,M_COMANS_fact_country,M_COMANS_ACT_number_lines,M_COMANS_ACT_active,M_COMANS_ACT_active_time
+F001,Fábrica Málaga Centro,ES,12.0,1,2026-01-12 08:00:00
+F002,Comanufactura Norte,ES,,0,2026-01-12 08:00:00
+F003,Externa Lisboa,PT,5.0,1,2026-01-12 08:00:00
