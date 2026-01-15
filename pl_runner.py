@@ -59,9 +59,9 @@ META_TABLE = os.getenv("META_TABLE", "DEV_CCP.T_METADATA")
 EXTRACTIONS_DIR = os.path.join(os.getcwd(), "extracciones")
 
 
-# -----------------------------
+# ------------------------------
 # Helpers
-# -----------------------------
+# ------------------------------
 def slugify_filename(text: str, max_len: int = 80) -> str:
     text = (text or "").strip().lower()
     text = re.sub(r"[^a-z0-9]+", "_", text)
