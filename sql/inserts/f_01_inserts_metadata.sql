@@ -106,3 +106,4 @@ VALUES
 ('F002',0,'2026-01-12 08:00:00',NULL,'Parada mantenimiento','MES'),
 ('F003',1,'2026-01-12 08:00:00',5,'Operando','MES');
 
+-- Fin nuevo codigo..

@@ -220,7 +220,7 @@ CREATE TABLE IF NOT EXISTS io_coef (
   id            BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   output_sku    VARCHAR(64) NOT NULL,    -- columna j (lo que produces)
   input_sku     VARCHAR(64) NOT NULL,    -- fila i (lo que consumes)
-  qty_per_unit  DECIMAL(18,6) NOT NULL,  -- unidades de input_sku por 1 unidad de output_sku
+  qty_per_unit  DECIMAL(18,6) NOT NULL,  -- unidades de input_sku por 1 unidad de output_sku.
   is_active     BOOLEAN NOT NULL DEFAULT TRUE,
   notes         VARCHAR(500) NULL,
   UNIQUE KEY uq_io (output_sku, input_sku),
