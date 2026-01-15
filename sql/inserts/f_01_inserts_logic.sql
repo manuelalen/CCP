@@ -51,4 +51,4 @@ INSERT INTO t2 (cod, ist_type_cod, ist_cre_tst, ist_upd_tst, dairy_tst, water_ts
   NULL,
   TIMESTAMP '2025-10-01 06:06:06'
 );
---- Fin del codigo reciente.
+--- Fin del codigo reciente

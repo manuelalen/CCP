@@ -1,6 +1,5 @@
 CREATE DATABASE DEV_TESTING;
 USE DEV_TESTING;
--- DROP TABLE dim_act_rls_rule;
 CREATE TABLE dim_act_rls_rule (
   rule_id        BIGINT,
   rule_name      VARCHAR(90),

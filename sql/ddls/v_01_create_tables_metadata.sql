@@ -31,7 +31,7 @@ CREATE TABLE DEV_EMPRESA_X.DIM_TASK_REQUIREMENTS (
 	task_id varchar(90),
     task_title longtext,
     task_description longtext,
-    project_id varchar(99), -- relacionarse con el id de la tabla M de projectos,,
+    project_id varchar(99), -- relacionarse con el id de la tabla M de projectos
     task_type varchar(99), -- ej: Creación de vistas, Creación de pipelines,
     have_reference boolean, -- si tenemos una referencia de cómo debe quedar el source o el target
     requested_by varchar(50),

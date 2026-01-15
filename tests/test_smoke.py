@@ -11,4 +11,4 @@ def test_has_build_extraction_sql():
     import pl_runner
     assert hasattr(pl_runner, "build_extraction_sql")
 
-## EOF 2026-01-15
+## EOF 2026-01-15 Jueves
