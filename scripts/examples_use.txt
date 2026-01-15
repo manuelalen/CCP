@@ -9,8 +9,3 @@ Levantar web --> uv pip install fastapi uvicorn python-dotenv
 SELECT * FROM pipeline_config; --> Aquí tenemos la config a modificar
 
 al igual que las demandas --> SELECT * FROM pipeline_demand_item
-
-
-python pl_runner.py --task-id WON-001    --> Para extracción
-
-python pl_runner.py --task-id WON-002 --ingestion-name 00.MASS-INGESTION-SCHREIBER --> Para crear vista

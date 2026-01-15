@@ -1,0 +1,36 @@
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*$py.class
+
+# ---- Virtual environments ----
+.venv/
+venv/
+env/
+ENV/
+
+# ---- Environment variables / secrets ----
+.env
+.env.*
+!.env.example
+
+# ---- IDEs / OS ----
+.vscode/
+.idea/
+.DS_Store
+
+# ---- Test / tooling ----
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# ---- Logs / temp ----
+*.log
+tmp/
+temp/
+
+# ---- Data outputs ----
+extracciones/
+*.csv
