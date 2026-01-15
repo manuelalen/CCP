@@ -11,7 +11,7 @@ CREATE TABLE DEV_EMPRESA_X.DIM_PROYECTOS(
     trabajadores_nec int, -- trabajadores necesarios para el proyecto
     horas_totales_necesarias float, -- horas-persona necesarias para el proyecto,
     trabajadores_fijos int, -- trabajadores que deben de ser fijos por necesidades del proyecto
-    horas_semanales_nec float, -- horas semanales fijas necesarias
+    horas_semanales_nec float, -- horas semanales fijas necesarias,
     primary key(id)
 );
 

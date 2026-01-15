@@ -4,7 +4,7 @@ CREATE TABLE dim_act_rls_rule (
   rule_id        BIGINT,
   rule_name      VARCHAR(90),
   active         BOOLEAN,
-  priority       INT,              -- 1 = más específica / más alta
+  priority       INT,              -- 1 = más específica / más alta.
   macro_category VARCHAR(50),       -- SN, Dairy, Waters...
   ist_type_cod   VARCHAR(50),       -- puede ser NULL si no aplica
   ts_source      VARCHAR(50),       -- 'IST_CRE_TST', 'IST_UPD_TST', 'WAT_TST', etc.
